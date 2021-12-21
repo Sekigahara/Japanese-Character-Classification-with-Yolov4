@@ -40,14 +40,19 @@ def detect():
         bboxes = utils.postprocess_boxes(pred_bbox, original_image_size, INPUT_SIZE, IOU_THRESH)
         bboxes = utils.nms(bboxes, IOU_THRESH, method='nms')
 
-        image = models.draw_boxes(original_image, bboxes, classes_path=".././weight/obj.names")
+        image, cropped_image, predicted = models.draw_boxes(original_image, bboxes, classes_path="weight/obj.names")
 
-        retval, buffer = cv2.imencode('.bmp', image)
-        _txt_bmp = base64.b64encode(buffer)
+        # Main Image to Bytes
+        main_img_bmp = models.to_byte(image)
 
-        response = {'ImageBytes':_txt_bmp}
+        cropped_img_bmp = []
+        # Sub cropped image to bytes
+        for img_p in cropped_image:
+            cropped_img_bmp.append(models.to_byte(np.float32(img_p)))
+        cropped_img_bmp = np.asarray(cropped_img_bmp)
+
+        response = {'Main_Image':main_img_bmp, 'Cropped_Image':cropped_img_bmp, 'Predicted':predicted}
         response = pd.DataFrame.from_dict(response, orient='index')
-        print(response)
         
         return Response(response.to_json(orient="records"), mimetype='application/json')
 
@@ -62,8 +67,8 @@ if __name__ == "__main__":
     # Load Model
     model = models.create_model(input_size=INPUT_SIZE, NUM_CLASS=46)
     # Load Weight
-    utils.load_weights(model, ".././weight/yolov4-obj_12000_re.weights")
-    utils.read_class_names(".././weight/obj.names")
+    utils.load_weights(model, "weight/yolov4-obj_12000_re.weights")
+    utils.read_class_names("weight/obj.names")
 
     # Run Api
     port = int(os.environ.get('PORT', 5000))

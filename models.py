@@ -6,6 +6,7 @@ import tensorflow as tf
 from PIL import Image, ImageFont, ImageDraw
 import colorsys
 import random
+import base64
 
 def cspdarknet53(input_data):
     input_data = common.convolutional(input_data, (3, 3,  3,  32), activate_type="mish")
@@ -177,7 +178,15 @@ def create_model(input_size = 736, NUM_CLASS=46):
     
     return tf.keras.Model(input_layer, bbox_tensors)
 
+def to_byte(image):
+    retval, buffer = cv2.imencode('.bmp', image)
+    
+    return base64.b64encode(buffer)
+
 def draw_boxes(image, bboxes, classes_path, show_label=True):
+    def crop(image, x1, x2, y1, y2):
+        return cv2.resize(image[y1:y2, x1:x2], (256, 256))
+
     classes = utils.read_class_names(classes_path)
 
     num_classes = len(classes)
@@ -186,6 +195,9 @@ def draw_boxes(image, bboxes, classes_path, show_label=True):
     colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
     colors = list(map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)), colors))
 
+    image_c = image.copy()
+    cropped_img = []
+    predicted = []
     random.seed(0)
     random.shuffle(colors)
     random.seed(None)
@@ -199,6 +211,11 @@ def draw_boxes(image, bboxes, classes_path, show_label=True):
         c1, c2 = (coor[0], coor[1]), (coor[2], coor[3])
         cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
 
+        cropped = crop(image_c, c1[0], c2[0], c1[1], c2[1])
+        cropped_img.append(cropped)
+
+        predicted.append(classes[class_ind])
+
         if show_label:
             bbox_mess = '%s: %.2f' % (classes[class_ind], score)
             #print(classes[class_ind], score)
@@ -211,4 +228,4 @@ def draw_boxes(image, bboxes, classes_path, show_label=True):
             draw = ImageDraw.Draw(img_pil)
             draw.text((c1[0], c1[1]-2), bbox_mess, fill="black",font=font)
 
-        return np.array(img_pil)
+    return np.asarray(img_pil), cropped_img, np.asarray(predicted)
