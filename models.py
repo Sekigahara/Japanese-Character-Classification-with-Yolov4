@@ -179,13 +179,20 @@ def create_model(input_size = 736, NUM_CLASS=46):
     return tf.keras.Model(input_layer, bbox_tensors)
 
 def to_byte(image):
-    retval, buffer = cv2.imencode('.bmp', image)
+    retval, buffer = cv2.imencode('.bmp', np.array(image))
+    byte_img = buffer.tobytes()
     
-    return base64.b64encode(buffer)
+    # base64
+    base64_b = base64.b64encode(byte_img)
+    
+    # to string utf-8
+    base_64_s = base64_b.decode('utf-8')
+    
+    return base_64_s
 
 def draw_boxes(image, bboxes, classes_path, show_label=True):
     def crop(image, x1, x2, y1, y2):
-        return cv2.resize(image[y1:y2, x1:x2], (256, 256))
+        return cv2.resize(image[y1:y2, x1:x2], (128, 128))
 
     classes = utils.read_class_names(classes_path)
 
@@ -228,4 +235,4 @@ def draw_boxes(image, bboxes, classes_path, show_label=True):
             draw = ImageDraw.Draw(img_pil)
             draw.text((c1[0], c1[1]-2), bbox_mess, fill="black",font=font)
 
-    return np.asarray(img_pil), cropped_img, np.asarray(predicted)
+    return img_pil, cropped_img, predicted

@@ -10,3 +10,4 @@ keras-YOLOv3-model-set/*
 ratio_no_deletion.txt
 ratio_with_deletion.txt
 visualization/logs_first_try/*
+test_saved/*
