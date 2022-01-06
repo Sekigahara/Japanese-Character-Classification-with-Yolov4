@@ -19,17 +19,19 @@ app = Flask(__name__)
 @app.route("/api/detect", methods=["POST"])
 def detect():
     # Load image in bytes
-    image_file = request.args.get('image')
+    image_json = request.get_json(force=True)
+    image_file = image_json["Main_Image"]
     image_bytes = base64.b64decode(image_file)
     img = Image.open(io.BytesIO(image_bytes))
 
     # Load with opencv
     original_image = cv2.cvtColor(np.array(img), cv2.COLOR_BGR2RGB)
-    original_image = cv2.rotate(original_image, cv2.cv2.ROTATE_90_CLOCKWISE)
+    #original_image = cv2.rotate(original_image, cv2.cv2.ROTATE_90_CLOCKWISE)
     original_image_size = original_image.shape[:2]
 
+    #cv2.imwrite("test_saved/tryraw1.png", image_data)
+    #original_image  = cv2.imread("test_saved/tryraw1.png")
     image_data = cv2.resize(original_image, (INPUT_SIZE, INPUT_SIZE))
-    cv2.imwrite("test_saved/test.png", image_data)
     image_data = image_data/255.
     image_data = image_data[np.newaxis, ...].astype(np.float32)
 
@@ -37,16 +39,16 @@ def detect():
     pred_bbox = [tf.reshape(x, (-1, tf.shape(x)[-1])) for x in pred_bbox]
     pred_bbox = tf.concat(pred_bbox, axis=0)
 
-    bboxes = utils.postprocess_boxes(pred_bbox, original_image_size, INPUT_SIZE, IOU_THRESH)
-    bboxes = utils.nms(bboxes, IOU_THRESH, method='nms')
+    bboxes = utils.postprocess_boxes(pred_bbox, [736, 736], INPUT_SIZE, IOU_THRESH)
+    bboxes = utils.nms(bboxes, 0.45, method='nms')
 
     if bboxes == []:
         img = models.to_byte(img.to_list())
-        response = {'Main_Image':img}
+        response = {'Main_Image':img, 'Cropped_Image':None, 'Predicted':None}
     else:
-        image, cropped_image, predicted = models.draw_boxes(original_image, bboxes, classes_path="weight/obj.names")
+        image, cropped_image, predicted = models.draw_boxes(original_image, bboxes, classes_path="weight/obj1.names", show_label=True)
+        cv2.imwrite("test_saved/tryrest1.png", np.array(image))
 
-        cv2.imwrite("test_saved/test2.png", np.array(image))
         # Main Image to Bytes
         main_img_bmp = models.to_byte(image)
 
@@ -54,10 +56,9 @@ def detect():
         # Sub cropped image to bytes
         for img_p in cropped_image:
             cropped_img_bmp.append(models.to_byte(np.float32(img_p)))
-        cropped_img_bmp = np.asarray(cropped_img_bmp)
 
-        #response = {'Main_Image':main_img_bmp, 'Cropped_Image':cropped_img_bmp, 'Predicted':predicted}
-        response = {'Main_Image':main_img_bmp}
+        response = {'Main_Image':main_img_bmp, 'Cropped_Image':cropped_img_bmp, 'Predicted':predicted}
+        #response = {'Main_Image':main_img_bmp}
 
     json_ = json.dumps(response, ensure_ascii=False).encode('utf8')
 
@@ -69,13 +70,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     INPUT_SIZE = 736
-    IOU_THRESH = 0.001
+    IOU_THRESH = 0.01
 
     # Load Model
-    model = models.create_model(input_size=INPUT_SIZE, NUM_CLASS=92)
+    model = models.create_model(input_size=INPUT_SIZE, NUM_CLASS=46)
     # Load Weight
-    utils.load_weights(model, "weight/yolov4-obj_20100_re.weights")
-    utils.read_class_names("weight/obj.names")
+    utils.load_weights(model, "weight/yolov4-obj_24000_reh.weights")
+    utils.read_class_names("weight/obj1.names")
 
     # Run Api
     port = int(os.environ.get('PORT', 5000))

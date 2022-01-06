@@ -173,7 +173,7 @@ def create_model(input_size = 736, NUM_CLASS=46):
     
     bbox_tensors = []
     for i, fm in enumerate(feature_maps):
-        bbox_tensor = decode(fm, 1, NUM_CLASS)
+        bbox_tensor = decode(fm, i, NUM_CLASS)
         bbox_tensors.append(bbox_tensor)
     
     return tf.keras.Model(input_layer, bbox_tensors)
@@ -216,10 +216,10 @@ def draw_boxes(image, bboxes, classes_path, show_label=True):
         bbox_color = colors[class_ind]
         bbox_thick = int(0.6 * (image_h + image_w) / 600)
         c1, c2 = (coor[0], coor[1]), (coor[2], coor[3])
-        cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
-
+        
         cropped = crop(image_c, c1[0], c2[0], c1[1], c2[1])
         cropped_img.append(cropped)
+        cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
 
         predicted.append(classes[class_ind])
 
@@ -233,6 +233,7 @@ def draw_boxes(image, bboxes, classes_path, show_label=True):
             font = ImageFont.truetype(fontpath, size=24, encoding='unic', index=0)
             img_pil = Image.fromarray(image)
             draw = ImageDraw.Draw(img_pil)
+            
             draw.text((c1[0], c1[1]-2), bbox_mess, fill="black",font=font)
 
     return img_pil, cropped_img, predicted
