@@ -208,6 +208,12 @@ def draw_boxes(image, bboxes, classes_path, show_label=True):
     random.seed(0)
     random.shuffle(colors)
     random.seed(None)
+
+    fontpath = "font//arial-unicode-ms.ttf"
+    font = ImageFont.truetype(fontpath, size=12, encoding='unic', index=0)
+    img_pil = Image.fromarray(image)
+    draw = ImageDraw.Draw(img_pil)
+
     for i, bbox in enumerate(bboxes):
         coor = np.array(bbox[:4], dtype=np.int32)
         fontScale = 0.5
@@ -219,21 +225,16 @@ def draw_boxes(image, bboxes, classes_path, show_label=True):
         
         cropped = crop(image_c, c1[0], c2[0], c1[1], c2[1])
         cropped_img.append(cropped)
-        cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
+        #cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
 
         predicted.append(classes[class_ind])
 
         if show_label:
             bbox_mess = '%s: %.2f' % (classes[class_ind], score)
             #print(classes[class_ind], score)
-            t_size = cv2.getTextSize(bbox_mess, 0, fontScale, thickness=bbox_thick//2)[0]
-            cv2.rectangle(image, c1, (c1[0] + t_size[0], c1[1] - t_size[1] - 3), bbox_color, -1)  # filled
-
-            fontpath = "font//arial-unicode-ms.ttf"
-            font = ImageFont.truetype(fontpath, size=24, encoding='unic', index=0)
-            img_pil = Image.fromarray(image)
-            draw = ImageDraw.Draw(img_pil)
-            
-            draw.text((c1[0], c1[1]-2), bbox_mess, fill="black",font=font)
+            #t_size = cv2.getTextSize(bbox_mess, 0, fontScale, thickness=bbox_thick//2)[0]
+            #cv2.rectangle(image, c1, (c1[0] + t_size[0], c1[1] - t_size[1] - 3), bbox_color, -1)  # filled
+            draw.rectangle((c1, c2), outline=bbox_color)
+            draw.text((c1[0]-1, c1[1]-4), bbox_mess, fill="black",font=font)
 
     return img_pil, cropped_img, predicted
