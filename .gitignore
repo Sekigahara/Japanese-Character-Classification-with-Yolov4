@@ -2,10 +2,9 @@ Dataset/*
 Utils/*
 source.txt
 experimental.ipynb
-Experimental/*
-tensorflow-yolov4-tflite/*
-keras-YOLOv3-model-set/*
 darkeras-yolov4/*
 keras-YOLOv3-model-set/*
 ratio_no_deletion.txt
 ratio_with_deletion.txt
+visualization/logs_first_try/*
+test_saved/*
