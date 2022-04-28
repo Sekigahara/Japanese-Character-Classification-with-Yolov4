@@ -169,7 +169,7 @@ def decode(conv_output, i=0, NUM_CLASS=46):
 def create_model(input_size = 736, NUM_CLASS=46):
     input_layer = tf.keras.layers.Input([input_size, input_size, 3])
     feature_maps = YOLOv4(input_layer, NUM_CLASS)
-    feature_maps_array = np.array(feature_maps)
+    #feature_maps_array = np.array(feature_maps)
     
     bbox_tensors = []
     for i, fm in enumerate(feature_maps):

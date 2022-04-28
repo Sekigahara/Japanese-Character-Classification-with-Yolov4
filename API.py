@@ -82,9 +82,9 @@ if __name__ == "__main__":
     # Load Model
     model = models.create_model(input_size=INPUT_SIZE, NUM_CLASS=46)
     # Load Weight
-    utils.load_weights(model, "weight/yolov4-obj_24000_reh.weights")
+    utils.load_weights(model, "weight/yolov4-obj_22300_hira.weights")
     utils.read_class_names("weight/obj1.names")
 
     # Run Api
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port,debug=True)
+    app.run(host='0.0.0.0', port=port,debug=False)

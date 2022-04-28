@@ -3,11 +3,12 @@ Utils/*
 source.txt
 experimental.ipynb
 Experimental/*
-tensorflow-yolov4-tflite/*
-keras-YOLOv3-model-set/*
-darkeras-yolov4/*
-keras-YOLOv3-model-set/*
+darkeras_yolov4/*
 ratio_no_deletion.txt
 ratio_with_deletion.txt
 visualization/logs_first_try/*
+visualization/logs_second_try/*
+visualization/logs_third_try/*
+visualization/logs_forth_try/*
 test_saved/*
+weight/*
